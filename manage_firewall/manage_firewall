@@ -1,0 +1,222 @@
+#!/bin/bash
+#
+# Wrapper script around UFW (Uncomplicated FireWall) for fast, easy and simple firewall management via CLI
+#   Version: 1.0.0
+#   Author: Tomislav Paskalev
+#   Year: 2024
+
+################################
+# USER INTERACTION FUNCTIONS
+################################
+
+########
+# DISPLAY HELP BANNER TO STDOUT
+function display_help()
+{
+  /bin/echo "[*] Usage:"
+  /bin/echo "${0} [FLAG]"
+  /bin/echo "   -l|--lan     Enable firewall rules - LAN"
+  /bin/echo "                  (allows inbound and outbound LAN traffic)"
+  /bin/echo "   -v|--vpn     Enable firewall rules - VPN"
+  /bin/echo "                  (allows only outbound VPN traffic)"
+  /bin/echo "   -b|--block   Enable firewall rules - block"
+  /bin/echo "                  (denies ALL inbound and outbound traffic)"
+  /bin/echo "   -d|--dis     Disable firewall"
+  /bin/echo "                  (allows ALL inbound and outbound traffic)"
+  /bin/echo "   -m|--msg     Display UFW log messages"
+  /bin/echo "                  (troubleshooting)"
+  /bin/echo "   -s|--stat    Display current status"
+  /bin/echo "                  (enforced firewall rules)"
+}
+
+
+################################
+# FIREWALL CONFIGURATION FUNCTIONS
+################################
+
+########
+# RESET FIREWALL RULES
+function reset_fw_rules()
+{
+  # RESET FIREWALL RULES
+  /bin/echo y | /usr/sbin/ufw reset > /dev/null
+  # DELETE BACKED UP RULES
+  /bin/rm /etc/ufw/before.rules.20*
+  /bin/rm /etc/ufw/before6.rules.20*
+  /bin/rm /etc/ufw/after.rules.20*
+  /bin/rm /etc/ufw/after6.rules.20*
+  /bin/rm /etc/ufw/user.rules.20*
+  /bin/rm /etc/ufw/user6.rules.20*
+  # SET DEFAULT FIREWALL BEHAVIOR
+  /usr/sbin/ufw default deny incoming > /dev/null
+  /usr/sbin/ufw default deny outgoing > /dev/null
+}
+
+########
+# SETUP FIREWALL RULES - LAN
+function setup_fw_rules_lan()
+{
+  # !!! CHANGE THIS - ADD FIREWALL RULES HERE - LAN PROFILE !!!
+}
+
+########
+# SETUP FIREWALL RULES - VPN
+function setup_fw_rules_vpn()
+{
+  # !!! CHANGE THIS - ADD FIREWALL RULES HERE - VPN PROFILE !!!
+}
+
+########
+# SETUP FIREWALL RULES - BLOCK
+function setup_fw_rules_block()
+{
+  /usr/sbin/ufw deny in from any > /dev/null
+  /usr/sbin/ufw deny out from any > /dev/null
+}
+
+########
+# FIREWALL POST CONFIGURATION
+function fw_post_config()
+{
+  # ENABLE LOGGING
+  /usr/sbin/ufw logging on > /dev/null
+  # ENABLE FIREWALL
+  /usr/sbin/ufw enable > /dev/null
+}
+
+########
+# SETUP FIREWALL - ENABLE PINGS
+function setup_fw_ena_pings()
+{
+  /bin/sed -i -z "s/# don't delete the 'COMMIT' line or these rules won't be processed\nCOMMIT/# allow outbound ICMP\n-A ufw-before-output -p icmp -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT\n-A ufw-before-output -p icmp -m state --state ESTABLISHED,RELATED -j ACCEPT\n\n# don't delete the 'COMMIT' line or these rules won't be processed\nCOMMIT/g" /etc/ufw/before.rules > /dev/null
+}
+
+########
+# RELOAD FIREWALL CONFIGURATION
+function reload_fw_config()
+{
+  # RELOAD FIREWALL
+  /usr/sbin/ufw reload > /dev/null
+  # DISPLAY FIREWALL STATUS
+  /usr/sbin/ufw status
+}
+
+########
+# CONFIGURE FIREWALL RULES - LAN
+#   ALLOWS INBOUND AND OUTBOUND LAN TRAFFIC
+function config_fw_lan()
+{
+  /bin/echo "[+] Enabling firewall - applying LAN rules"
+  reset_fw_rules
+  setup_fw_rules_lan
+  fw_post_config
+  setup_fw_ena_pings
+  reload_fw_config
+}
+
+########
+# CONFIGURE FIREWALL RULES - VPN
+#   ALLOWS ONLY OUTBOUND VPN TRAFFIC
+function config_fw_vpn()
+{
+  /bin/echo "[+] Enabling firewall - applying VPN rules"
+  reset_fw_rules
+  setup_fw_rules_vpn
+  fw_post_config
+  reload_fw_config
+}
+
+########
+# CONFIGURE FIREWALL RULES - BLOCK
+#   DENIES ALL INBOUND AND OUTBOUND TRAFFIC
+function config_fw_block()
+{
+  /bin/echo "[+] Enabling firewall - applying BLOCK rules"
+  reset_fw_rules
+  setup_fw_rules_block
+  fw_post_config
+  reload_fw_config
+}
+
+########
+# DISABLE FIREWALL
+#   ALLOWS ALL INBOUND AND OUTBOUND TRAFFIC
+function disable_fw()
+{
+  /bin/echo "[+] Disabling firewall"
+  /usr/sbin/ufw disable > /dev/null
+}
+
+########
+# DISPLAY UFW LOG MESSAGES - TROUBLESHOOTING
+function display_ufw_logs()
+{
+  /bin/echo "[*] UFW log messages (last 24 hours)"
+  /bin/journalctl --since=yesterday --until=now | /bin/grep -i ufw
+}
+
+########
+# DISPLAY FIREWALL STATUS - ENFORCED FIREWALL RULES
+function display_fw_status()
+{
+  /bin/echo "[*] Firewall status"
+  /usr/sbin/ufw status
+}
+
+
+################################
+# USER INPUT VALIDATION FUNCTIONS
+################################
+
+########
+# VALIDATE CURRENT PRIVILEGES
+if [[ "${EUID}" -ne 0 ]]; then
+  /bin/echo "[-] Requires root privileges" >&2
+  display_help
+  exit 1
+fi
+
+########
+# VALIDATE PROVIDED NUMBER OF COMMAND LINE ARGUMENTS
+if [[ "${#}" -ne 1 ]]; then
+  /bin/echo "[-] Invalid number of command line parameters" >&2
+  display_help
+  exit 1
+fi
+
+########
+# VALIDATE PROVIDED COMMAND LINE ARGUMENTS
+case "${1}" in
+  # CONFIGURE FIREWALL RULES - LAN
+  -l|--lan)
+    config_fw_lan
+    ;;
+  # CONFIGURE FIREWALL RULES - VPN
+  -v|--vpn)
+    config_fw_vpn
+    ;;
+  # CONFIGURE FIREWALL RULES - BLOCK
+  -b|--block)
+    config_fw_block
+    ;;
+  # DISABLE FIREWALL
+  -d|--dis)
+    disable_fw
+    ;;
+  # DISPLAY UFW LOG MESSAGES - TROUBLESHOOTING
+  -m|--msg)
+    display_ufw_logs
+    ;;
+  # DISPLAY FIREWALL STATUS - ENFORCED FIREWALL RULES
+  -s|--stat)
+    display_fw_status
+    ;;
+  # UNSUPPORTED FLAG
+  *|-*|--*=)
+    /bin/echo "[-] Unsupported flag" >&2
+    display_help
+    exit 1
+    ;;
+esac
+
+# EoF
