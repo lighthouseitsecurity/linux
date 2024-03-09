@@ -174,3 +174,15 @@ Wrapper script around UFW (Uncomplicated FireWall; Linux) for fast, easy and sim
         ```
         /usr/sbin/ufw allow out on tun0 to 0.0.0.0/0 proto tcp > /dev/null
         ```
+
+## Donations
+
+<p align="justify">The content available on this page is free of charge. In case you found any information documented here helpful and/or learned something new and/or it saved time or you just want to support this initiative, please consider donating.</p>
+
+Currently supported donation options:
+
+* Monero [XMR] - `89UmCAajMN9ECm9g9rz3j92xK97qFKDwtPA6SSVuScToNwVSKPP5bjXXNnXqEk4KdjH4aSVHzXLjbNnh45dR9dP1V7wVDGg`
+
+<p align="justify">Received donations will also result with more frequent content updates.</p>
+
+Thanks!
