@@ -14,7 +14,7 @@ Currently supported donation options:
   <kbd>
     <picture>
       <source media="" srcset="https://raw.githubusercontent.com/lighthouseitsecurity/linux/refs/heads/main/images/qr/qr_scripts.png">
-      <img src="https://raw.githubusercontent.com/lighthouseitsecurity/linux/refs/heads/main/images/qr/qr_scripts.png">
+      <img src="https://raw.githubusercontent.com/lighthouseitsecurity/linux/refs/heads/main/images/qr/qr_scripts.png" height="250px" width="250px">
     </picture>
   </kbd>
 </p>
