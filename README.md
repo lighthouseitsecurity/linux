@@ -1,6 +1,6 @@
 # Linux
 
-A collection of various Linux scripts, used to automate and/or simplify tasks.
+A collection of various Linux scripts, used for automating and/or simplifying tasks.
 
 ## Donations
 
